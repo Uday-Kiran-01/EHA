@@ -1,0 +1,38 @@
+# EHA — Employee Help Assistant
+# Git ignore for Copilot Studio portfolio project
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# Node (if you ever add scripts)
+node_modules/
+
+# Python (if you ever add scripts)
+__pycache__/
+*.pyc
+.venv/
+
+# Copilot Studio local state (if using VS Code extension)
+.local/
+workspace/
+
+# Secrets & tokens
+.env
+*.token
+*.secret
+credentials.json
+
+# Zip artifacts
+*.zip
+*.vsix
+
+# Screenshots (keep only final ones)
+screenshots/.tmp/

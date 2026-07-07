@@ -1,0 +1,83 @@
+# Topic: Collect User Feedback
+# Triggers: End of conversation, or after ticket resolution
+# Purpose: Capture structured feedback beyond star ratings (as JD requires)
+
+kind: AdaptiveDialog
+modelDisplayName: Collect Feedback
+modelDescription: >
+  After helping the user, asks for structured feedback.
+  Goes beyond simple thumbs-up by capturing what worked and what didn't.
+
+trigger:
+  kind: OnRecognizedIntent
+  id: feedback_trigger
+  phrases:
+    - "That was helpful"
+    - "Thanks that solved it"
+    - "That didn't help"
+    - "Not what I needed"
+    - "Try again"
+
+# ─── Also triggered programmatically after ticket creation/resolution ───
+# This topic is called by other topics via RedirectToTopic after completing their task.
+
+actions:
+  # Step 1: Quick thumbs up/down
+  - kind: Question
+    id: ask_satisfaction
+    activity: "Did that help? 👍 or 👎"
+    variable: Topic.Satisfaction
+    entity:
+      kind: ClosedListEntity
+      items:
+        - displayName: "👍 Yes, that helped"
+          value: satisfied
+        - displayName: "👎 Not really"
+          value: dissatisfied
+
+  # Step 2a: If satisfied — ask what worked
+  - kind: ConditionGroup
+    id: satisfied_path
+    conditions:
+      - condition: "={Topic.Satisfaction} = 'satisfied'"
+    actions:
+      - kind: Question
+        id: ask_what_worked
+        activity: "Awesome! What worked well? (optional — just type 'skip' to move on)"
+        variable: Topic.PositiveFeedback
+        entity: StringType
+        identify: userResponse
+
+      - kind: SendActivity
+        id: thanks_feedback
+        activity: "Thanks for the feedback! It helps us improve. Have a great day! 👋"
+
+  # Step 2b: If dissatisfied — ask what went wrong
+  - kind: ConditionGroup
+    id: dissatisfied_path
+    conditions:
+      - condition: "={Topic.Satisfaction} = 'dissatisfied'"
+    actions:
+      - kind: Question
+        id: ask_what_wrong
+        activity: "I'm sorry about that. Can you tell me what went wrong so I can improve?"
+        variable: Topic.NegativeFeedback
+        entity: StringType
+        identify: userResponse
+
+      - kind: SendActivity
+        id: acknowledge_feedback
+        activity: |
+          Thank you for letting me know. I've logged your feedback and will improve.
+
+          If you still need help, you can say "escalate" and I'll connect you with a human agent.
+
+      # Log feedback to Dataverse for analytics
+      - kind: InvokeFlow
+        id: log_feedback
+        flowName: "EHA-LogUserFeedback"
+        inputs:
+          satisfaction: "={Topic.Satisfaction}"
+          feedback: "={if(Topic.Satisfaction = 'satisfied', Topic.PositiveFeedback, Topic.NegativeFeedback)}"
+          conversationId: "={System.Activity.ConversationId}"
+          timestamp: "={System.Activity.Timestamp}"

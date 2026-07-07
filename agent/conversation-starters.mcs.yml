@@ -1,0 +1,22 @@
+# Conversation Starters
+# Displayed as clickable suggestions when the agent first loads
+# Follows JD requirement: "support for media like images and videos"
+
+conversationStarters:
+  - text: "🔑 I need to reset my password"
+    icon: key
+
+  - text: "🖥️ My laptop is having issues"
+    icon: laptop
+
+  - text: "📊 Check status of my ticket"
+    icon: ticket
+
+  - text: "🔌 How do I connect to VPN?"
+    icon: wifi
+
+  - text: "🎫 Create a new support ticket"
+    icon: create
+
+  - text: "🙋 Speak to a human agent"
+    icon: person

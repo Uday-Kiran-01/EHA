@@ -1,0 +1,32 @@
+# Topic: Greeting & Conversation Start
+# Triggers: OnConversationStart
+
+kind: AdaptiveDialog
+modelDisplayName: Greeting
+modelDescription: >
+  Welcomes the employee, explains what the agent can do, and suggests common actions.
+
+beginDialog:
+  kind: OnConversationStart
+  actions:
+    - kind: SendActivity
+      id: welcome_message
+      activity: |
+        👋 Hi there! I'm the **IT Helpdesk Assistant**.
+
+        I can help you with:
+        - 🔍 Finding answers to common IT questions
+        - 🎫 Creating a support ticket
+        - 📊 Checking the status of an existing ticket
+        - 🙋 Escalating to a human agent
+
+        How can I help you today?
+
+    - kind: SendActivity
+      id: suggested_actions
+      activity: |
+        **Try asking me:**
+        • "How do I connect to the VPN?"
+        • "I need to reset my password"
+        • "Create a ticket for my broken keyboard"
+        • "What's the status of my ticket?"

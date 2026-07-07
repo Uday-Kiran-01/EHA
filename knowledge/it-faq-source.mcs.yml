@@ -1,0 +1,45 @@
+# Knowledge Source: IT FAQ Documents
+# Type: SharePoint document library
+# Purpose: Ground agent responses in authoritative IT support content
+
+kind: KnowledgeSourceConfiguration
+name: IT FAQ Knowledge Base
+type: sharepoint
+
+# ─── Connection ───
+connection:
+  siteUrl: "https://{your-tenant}.sharepoint.com/sites/ITSupport"
+  libraryName: "ITFAQDocuments"
+  folders:
+    - "VPN Setup Guides"
+    - "Password Reset Procedures"
+    - "Software Installation"
+    - "Printer Configuration"
+    - "Email Troubleshooting"
+    - "M365 Help"
+
+# ─── Supported File Types ───
+supportedFileTypes:
+  - pdf
+  - docx
+  - pptx
+  - txt
+  - html
+
+# ─── Search Configuration ───
+search:
+  mode: semantic           # Use semantic search for better relevance
+  maxResults: 3            # Return top 3 matches
+  citationStyle: inline    # Show source citations in responses
+
+# ─── Additional Public Sources ───
+publicWebsites:
+  - url: "https://learn.microsoft.com/en-us/microsoft-365/"
+    description: "Official Microsoft 365 documentation"
+  - url: "https://support.microsoft.com/en-us/"
+    description: "Microsoft Support knowledge base"
+
+# ─── Update Schedule ───
+refresh:
+  schedule: daily
+  time: "03:00 UTC"

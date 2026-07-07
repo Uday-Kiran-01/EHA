@@ -1,0 +1,53 @@
+# Topic: Check Ticket Status
+# Triggers: User asks about an existing ticket
+
+kind: AdaptiveDialog
+modelDisplayName: Check Ticket Status
+modelDescription: >
+  Looks up a ServiceNow ticket by INC number and returns current status,
+  assignee, and last update.
+
+trigger:
+  kind: OnRecognizedIntent
+  id: check_status_trigger
+  phrases:
+    - "What's the status of my ticket"
+    - "Check ticket status"
+    - "Update on ticket {incNumber}"
+    - "Where is my ticket"
+    - "Has my ticket been resolved"
+    - "Status of INC"
+    - "Any update on my issue"
+    - "Follow up on my ticket"
+
+actions:
+  # Step 1: Ask for ticket number
+  - kind: Question
+    id: ask_ticket_number
+    activity: "Sure! What's your ticket number? (It looks like INC followed by 7 digits, e.g., INC0009005)"
+    variable: Topic.IncNumber
+    entity:
+      kind: RegexEntity
+      pattern: "^INC[0-9]{7}$"
+      errorMessage: "That doesn't look like a valid ticket number. It should be like INC0009005."
+
+  # Step 2: Call ServiceNow for status
+  - kind: InvokeFlow
+    id: get_ticket_status
+    flowName: "ING-GetServiceNowTicketStatus"
+    inputs:
+      incNumber: "={Topic.IncNumber}"
+    outputVariable: Topic.TicketStatus
+
+  # Step 3: Display status
+  - kind: SendActivity
+    id: show_status
+    activity: |
+      Here's the status of ticket **{Topic.IncNumber}**:
+
+      📊 **Status**: {Topic.TicketStatus.state}
+      👤 **Assigned To**: {Topic.TicketStatus.assignee}
+      🕐 **Last Updated**: {Topic.TicketStatus.lastUpdated}
+      📝 **Latest Note**: {Topic.TicketStatus.latestNote}
+
+      Is there anything else I can help with?

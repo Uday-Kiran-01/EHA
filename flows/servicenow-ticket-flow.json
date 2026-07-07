@@ -1,0 +1,71 @@
+{
+  "name": "ING-CreateServiceNowTicket",
+  "description": "Creates a new incident ticket in ServiceNow and returns the ticket number.",
+  "trigger": {
+    "type": "manual",
+    "inputs": {
+      "title": { "type": "string", "description": "Short title of the issue" },
+      "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+      "description": { "type": "string", "description": "Detailed issue description" },
+      "contactEmail": { "type": "string", "format": "email" }
+    }
+  },
+  "steps": [
+    {
+      "type": "compose",
+      "description": "Map severity label to ServiceNow impact/urgency values",
+      "inputs": {
+        "impact": "@{if(equals(triggerBody()?['severity'], 'critical'), '1', if(equals(triggerBody()?['severity'], 'high'), '1', if(equals(triggerBody()?['severity'], 'medium'), '2', '3')))}",
+        "urgency": "@{if(equals(triggerBody()?['severity'], 'critical'), '1', if(equals(triggerBody()?['severity'], 'high'), '2', '3'))}"
+      }
+    },
+    {
+      "type": "http",
+      "description": "Create incident in ServiceNow (mock endpoint — replace with real instance)",
+      "inputs": {
+        "method": "POST",
+        "uri": "https://{your-instance}.service-now.com/api/now/table/incident",
+        "headers": {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        "body": {
+          "short_description": "@{triggerBody()?['title']}",
+          "description": "@{triggerBody()?['description']}",
+          "impact": "@{outputs('compose')?['impact']}",
+          "urgency": "@{outputs('compose')?['urgency']}",
+          "caller_id": "@{triggerBody()?['contactEmail']}",
+          "category": "inquiry",
+          "contact_type": "self-service"
+        }
+      }
+    },
+    {
+      "type": "parseJson",
+      "description": "Parse ServiceNow response",
+      "inputs": {
+        "content": "@{body('http')}",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "object",
+              "properties": {
+                "number": { "type": "string" },
+                "sys_id": { "type": "string" },
+                "state": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "respondToCopilot",
+      "description": "Return ticket number to Copilot agent",
+      "inputs": {
+        "ticketNumber": "@{body('parseJson')?['result']?['number']}"
+      }
+    }
+  ]
+}

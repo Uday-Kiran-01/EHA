@@ -1,0 +1,87 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "size": "Large",
+      "weight": "Bolder",
+      "text": "Create IT Support Ticket",
+      "style": "heading"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Fill in the details below and we'll get someone on it right away.",
+      "wrap": true,
+      "spacing": "Medium"
+    },
+    {
+      "type": "Input.Text",
+      "id": "ticketTitle",
+      "label": "Issue Title",
+      "placeholder": "e.g., Laptop won't turn on",
+      "isRequired": true,
+      "errorMessage": "Please enter a short title for your issue.",
+      "maxLength": 100
+    },
+    {
+      "type": "Input.ChoiceSet",
+      "id": "ticketSeverity",
+      "label": "Severity",
+      "isRequired": true,
+      "style": "expanded",
+      "choices": [
+        {
+          "title": "🟢 Low — Minor inconvenience",
+          "value": "low"
+        },
+        {
+          "title": "🟡 Medium — Affecting my work",
+          "value": "medium"
+        },
+        {
+          "title": "🟠 High — Blocking important work",
+          "value": "high"
+        },
+        {
+          "title": "🔴 Critical — System down, team blocked",
+          "value": "critical"
+        }
+      ],
+      "errorMessage": "Please select a severity level."
+    },
+    {
+      "type": "Input.Text",
+      "id": "ticketDescription",
+      "label": "Description",
+      "placeholder": "Describe what happened, when it started, and any error messages you saw...",
+      "isRequired": true,
+      "isMultiline": true,
+      "maxLength": 2000,
+      "errorMessage": "Please describe the issue in detail."
+    },
+    {
+      "type": "Input.Text",
+      "id": "contactEmail",
+      "label": "Contact Email",
+      "placeholder": "you@ing.com",
+      "isRequired": true,
+      "style": "email",
+      "errorMessage": "Please enter a valid email address."
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Submit Ticket",
+      "style": "positive"
+    },
+    {
+      "type": "Action.Submit",
+      "title": "Cancel",
+      "style": "default",
+      "associatedInputs": "none"
+    }
+  ]
+}

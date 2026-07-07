@@ -1,0 +1,109 @@
+# Topic: Create Support Ticket
+# Triggers: User wants to create/submit/open a ticket
+
+kind: AdaptiveDialog
+modelDisplayName: Create Ticket
+modelDescription: >
+  Collects issue details and creates a ServiceNow ticket.
+  Uses an adaptive card form for structured data collection with WCAG-compliant design.
+
+# ─── Trigger Phrases ───
+trigger:
+  kind: OnRecognizedIntent
+  id: create_ticket_trigger
+  phrases:
+    - "I want to create a ticket"
+    - "Open a support ticket"
+    - "Report an IT issue"
+    - "Something is broken"
+    - "I need help with my {device}"
+    - "My {device} is not working"
+    - "Create a ticket for {issue}"
+    - "Log a ticket"
+    - "Submit a ticket"
+    - "File an IT request"
+
+# ─── Conversation Flow ───
+actions:
+  # Step 1: Ask what the issue is about
+  - kind: Question
+    id: ask_issue_title
+    activity: "What's the issue about? Give me a short title (e.g., 'Laptop won't turn on')."
+    variable: Topic.TicketTitle
+    entity: StringType
+    identify: userResponse
+
+  # Step 2: Ask severity level
+  - kind: Question
+    id: ask_severity
+    activity: |
+      How urgent is this?
+
+      1. 🟢 **Low** — Minor inconvenience, no rush
+      2. 🟡 **Medium** — Affecting my work, needs attention soon
+      3. 🟠 **High** — Blocking important work
+      4. 🔴 **Critical** — System down, entire team blocked
+    variable: Topic.TicketSeverity
+    entity:
+      kind: ClosedListEntity
+      items:
+        - displayName: Low
+          value: low
+        - displayName: Medium
+          value: medium
+        - displayName: High
+          value: high
+        - displayName: Critical
+          value: critical
+
+  # Step 3: Ask for detailed description
+  - kind: Question
+    id: ask_description
+    activity: "Please describe the issue in detail. What happened? When did it start? Any error messages?"
+    variable: Topic.TicketDescription
+    entity: StringType
+    identify: userResponse
+
+  # Step 4: Ask for contact email
+  - kind: Question
+    id: ask_email
+    activity: "What email should we send updates to?"
+    variable: Topic.ContactEmail
+    entity:
+      kind: RegexEntity
+      pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      errorMessage: "That doesn't look like a valid email. Please try again."
+
+  # Step 5: Confirmation
+  - kind: SendActivity
+    id: confirm_summary
+    activity: |
+      Here's a summary before I submit:
+
+      📋 **Title**: {Topic.TicketTitle}
+      ⚠️ **Severity**: {Topic.TicketSeverity}
+      📝 **Description**: {Topic.TicketDescription}
+      📧 **Contact**: {Topic.ContactEmail}
+
+      Creating your ticket now...
+
+  # Step 6: Call ServiceNow via Power Automate flow
+  - kind: InvokeFlow
+    id: create_servicenow_ticket
+    flowName: "ING-CreateServiceNowTicket"
+    inputs:
+      title: "={Topic.TicketTitle}"
+      severity: "={Topic.TicketSeverity}"
+      description: "={Topic.TicketDescription}"
+      contactEmail: "={Topic.ContactEmail}"
+    outputVariable: Topic.TicketNumber
+
+  # Step 7: Confirmation with ticket number
+  - kind: SendActivity
+    id: ticket_created
+    activity: |
+      ✅ **Ticket Created!**
+
+      Your ticket number is **{Topic.TicketNumber}**. You'll receive updates at {Topic.ContactEmail}.
+
+      Is there anything else I can help with?

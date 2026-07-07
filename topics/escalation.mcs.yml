@@ -1,0 +1,72 @@
+# Topic: Escalation to Human Agent
+# Triggers: User explicitly asks for human or agent cannot resolve after 2 attempts
+
+kind: AdaptiveDialog
+modelDisplayName: Escalate to Human
+modelDescription: >
+  Escalates the conversation to a human IT support agent with full context.
+  Collects a brief summary and confirmation before transferring.
+
+trigger:
+  kind: OnRecognizedIntent
+  id: escalation_trigger
+  phrases:
+    - "I want to talk to a human"
+    - "Speak to a real person"
+    - "Escalate this"
+    - "This isn't helping"
+    - "I need a real agent"
+    - "Transfer me"
+    - "Can I talk to someone"
+    - "Get me a human"
+    - "Agent please"
+
+actions:
+  # Step 1: Acknowledge and confirm
+  - kind: SendActivity
+    id: acknowledge_escalation
+    activity: |
+      I understand — let me connect you with a human support agent.
+
+      Before I transfer, let me make sure they have all the context they need.
+
+  # Step 2: Ask for additional context
+  - kind: Question
+    id: ask_additional_context
+    activity: "Is there anything specific you'd like me to tell the support agent about your issue?"
+    variable: Topic.EscalationNote
+    entity: StringType
+    identify: userResponse
+
+  # Step 3: Build context summary
+  - kind: SetVariable
+    id: build_context_summary
+    variable: Topic.EscalationSummary
+    value: |
+      ⚠️ **ESCALATION — Human Agent Required**
+
+      **User**: {System.User.DisplayName}
+      **Department**: {System.User.Department}
+      **Time**: {System.Activity.Timestamp}
+
+      **Issue Summary**: User requested human assistance.
+      **Additional Note**: {Topic.EscalationNote}
+      **Conversation History**: See transcript above.
+
+  # Step 4: Send summary to human queue
+  - kind: InvokeFlow
+    id: send_to_human_queue
+    flowName: "ING-EscalateToHumanAgent"
+    inputs:
+      escalationSummary: "={Topic.EscalationSummary}"
+      userEmail: "={System.User.Email}"
+
+  # Step 5: Confirm to user
+  - kind: SendActivity
+    id: escalation_confirmed
+    activity: |
+      ✅ You've been added to the support queue. A human agent will reach out to you shortly.
+
+      **Your reference**: ESC-{System.Activity.ConversationId}
+
+      Is there anything else I can help with in the meantime?
